@@ -26,12 +26,13 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     /// @dev Initialize contract states
     function initialize(
         address _operator,
+        address _link,
         string memory _jobId,
         string memory _sxtGatewayEndpoint
     ) external initializer onlyAdmin {
-        setPublicChainlinkToken();
-
+        setChainlinkToken(_link);
         setChainlinkOracle(_operator);
+
         SXT_JOB_ID = stringToBytes32(_jobId);
         SXT_GATEWAY_ENDPOINT = _sxtGatewayEndpoint;
     }
