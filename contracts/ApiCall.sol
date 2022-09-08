@@ -52,7 +52,7 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     }
 
     /// @dev Execute api call
-    function executeApi(string memory _query)
+    function executeApi(string memory _resourceId, string memory _query, string memory _path)
         external
         returns (bytes32 requestId)
     {
@@ -64,7 +64,9 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
 
         // Set the URL to perform the GET request on
         request.add("post", SXT_GATEWAY_ENDPOINT);
+        request.add("resourceId", _resourceId);
         request.add("query", _query);
+        request.add("path", _path);
 
         // Sends the request
         return sendChainlinkRequest(request, FEE);
@@ -81,13 +83,12 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
         uint256 i;
         uint256 j;
         uint256 inLength;
-        string[] memory row;
-
         uint256 length = _data.length;
+
         // Store response
         for (i = 0; i < length; i++) {
             inLength = _data[i].length;
-            row = new string[](inLength);
+            string[] memory row = new string[](inLength);
             for (j = 0; j < inLength; j++) {
                 row[j] = _data[i][j];
             }

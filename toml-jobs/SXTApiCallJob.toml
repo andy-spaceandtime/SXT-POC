@@ -1,6 +1,6 @@
 type = "directrequest"
 schemaVersion = 1
-name = "Query Multi Response Call"
+name = "SXT Gateway Api Call"
 maxTaskDuration = "0s"
 contractAddress = "0xD4fef85240Fb9071b11b5352f3cd4EC8D8ac5996"
 minIncomingConfirmations = 0
@@ -13,7 +13,7 @@ observationSource = """
 
     decode_cbor  [type="cborparse" data="$(decode_log.data)"]
     request      [type="http" method=POST url="$(decode_cbor.post)" requestData="{\\"query\\": $(decode_cbor.query)}"]
-    parse        [type="jsonparse" data="$(request)"]
+    parse        [type="jsonparse" path="$(decode_cbor.path)" data="$(request)"]
 
     encode_data  [type="ethabiencode" abi="(bytes32 requestId, string[][] value)" data="{ \\"requestId\\": $(decode_log.requestId), \\"value\\": $(parse) }"]
     encode_tx    [type="ethabiencode"
