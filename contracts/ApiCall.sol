@@ -5,7 +5,8 @@ import "./abstract/Admin.sol";
 import "./abstract/String.sol";
 import "./abstract/Initializer.sol";
 
-import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+// import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "./ChainlinkClient.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ApiCall is Admin, String, Initializer, ChainlinkClient {
