@@ -14,12 +14,13 @@ import { SUPPORTED_RPC_ENDPOINTS } from "./tasks/utils/constants";
 dotenv.config();
 
 const SUPPORTED_CHAINS = {
+  kovan: 42,
   goerli: 5,
 };
 
-const SUPPORTED_CHAIN_NAMES = ["goerli"];
+const SUPPORTED_CHAIN_NAMES = ["goerli", "kovan"];
 
-const AVAILABLE_NETWORKS = ["mainnet", "kovan", "hardhat"];
+const AVAILABLE_NETWORKS = ["mainnet", "goerli", "hardhat", "kovan"];
 
 const DEPLOYER: string = process.env.DEPLOYER_PRIVATE_KEY || "";
 if (!DEPLOYER) {

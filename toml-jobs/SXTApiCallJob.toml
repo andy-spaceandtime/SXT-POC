@@ -1,8 +1,8 @@
 type = "directrequest"
 schemaVersion = 1
-name = "Query Multi Response Call"
+name = "SXT Gateway Api Call"
 maxTaskDuration = "0s"
-contractAddress = "0xD4fef85240Fb9071b11b5352f3cd4EC8D8ac5996"
+contractAddress = "0x5a27848f7B1a7Ad1EAcF187dA16ac2293F7970c2"
 minIncomingConfirmations = 0
 minContractPaymentLinkJuels = "0"
 observationSource = """
@@ -12,15 +12,15 @@ observationSource = """
                   topics="$(jobRun.logTopics)"]
 
     decode_cbor  [type="cborparse" data="$(decode_log.data)"]
-    request      [type="http" method=POST url="$(decode_cbor.post)" requestData="{\\"query\\": $(decode_cbor.query)}"]
-    parse        [type="jsonparse" data="$(request)"]
+    request      [type="http" method=POST url="$(decode_cbor.post)" requestData="{ \\"resourceId\\": $(decode_cbor.resourceId), \\"sqlText\\": $(decode_cbor.query) }"]
+    parse        [type="jsonparse" path="$(decode_cbor.path)" data="$(request)"]
 
-    encode_data  [type="ethabiencode" abi="(bytes32 requestId, string[][] value)" data="{ \\"requestId\\": $(decode_log.requestId), \\"value\\": $(parse) }"]
+    encode_data  [type="ethabiencode" abi="(bytes32 requestId, string value)" data="{ \\"requestId\\": $(decode_log.requestId), \\"value\\": $(parse) }"]
     encode_tx    [type="ethabiencode"
                   abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
                   data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\":   $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_data)}"
                   ]
-    submit_tx    [type="ethtx" to="0xD4fef85240Fb9071b11b5352f3cd4EC8D8ac5996" data="$(encode_tx)"]
+    submit_tx    [type="ethtx" to="0x5a27848f7B1a7Ad1EAcF187dA16ac2293F7970c2" data="$(encode_tx)"]
 
     decode_log -> decode_cbor -> request -> parse -> encode_data -> encode_tx -> submit_tx
 """

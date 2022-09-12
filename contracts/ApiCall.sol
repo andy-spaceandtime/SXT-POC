@@ -20,8 +20,15 @@ contract ApiCall is Admin, String, Initializer, SxTClient {
     /// @dev SpaceAndTime Gateway API Endpoint
     string public SXT_GATEWAY_ENDPOINT;
 
+    /// @dev SXT Api call request Id
+    bytes32 public currentRequestId;
+
     /// @dev SXT Api call response
-    string[][] public response;
+    string public currentResponse;
+
+    constructor() {
+        admin = msg.sender;
+    }
 
     /// @dev Initialize contract states
     function initialize(
@@ -51,8 +58,14 @@ contract ApiCall is Admin, String, Initializer, SxTClient {
         );
     }
 
+    /// @dev Set SXT JOB ID
+    function setSXTJobID(string memory _jobId) external onlyAdmin {
+        SXT_JOB_ID = stringToBytes32(_jobId);
+    }
+
+
     /// @dev Execute api call
-    function executeApi(string memory _query)
+    function executeApi(string memory _resourceId, string memory _query, string memory _path)
         external
         returns (bytes32 requestId)
     {
@@ -64,34 +77,20 @@ contract ApiCall is Admin, String, Initializer, SxTClient {
 
         // Set the URL to perform the GET request on
         request.add("post", SXT_GATEWAY_ENDPOINT);
+        request.add("resourceId", _resourceId);
         request.add("query", _query);
+        request.add("path", _path);
 
         // Sends the request
         return sendSxTRequest(request, FEE);
     }
 
     /// @dev SXT off-chain request callback
-    function callback(bytes32 _requestId, string[][] calldata _data)
+    function callback(bytes32 _requestId, string calldata _data)
         external
         recordSxTFulfillment(_requestId)
     {
-        // Remove previous data
-        delete response;
-
-        uint256 i;
-        uint256 j;
-        uint256 inLength;
-        string[] memory row;
-
-        uint256 length = _data.length;
-        // Store response
-        for (i = 0; i < length; i++) {
-            inLength = _data[i].length;
-            row = new string[](inLength);
-            for (j = 0; j < inLength; j++) {
-                row[j] = _data[i][j];
-            }
-            response.push(row);
-        }
+        currentRequestId = _requestId;
+        currentResponse = _data;
     }
 }
