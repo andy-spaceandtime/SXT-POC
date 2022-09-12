@@ -5,14 +5,14 @@ import "./abstract/Admin.sol";
 import "./abstract/String.sol";
 import "./abstract/Initializer.sol";
 
-import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "./SxTClient.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ApiCall is Admin, String, Initializer, ChainlinkClient {
-    using Chainlink for Chainlink.Request;
+contract ApiCall is Admin, String, Initializer, SxTClient {
+    using SxT for SxT.Request;
 
-    /// @dev Fee for chainlink request
-    uint256 public constant FEE = (1 * LINK_DIVISIBILITY) / 10;
+    /// @dev Fee for SxT request
+    uint256 public constant FEE = (1 * SXT_DIVISIBILITY) / 10;
 
     /// @dev SpaceAndTime Job Id
     bytes32 public SXT_JOB_ID;
@@ -33,12 +33,12 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     /// @dev Initialize contract states
     function initialize(
         address _operator,
-        address _link,
+        address _sxt,
         string memory _jobId,
         string memory _sxtGatewayEndpoint
-    ) external initializer {
-        setChainlinkToken(_link);
-        setChainlinkOracle(_operator);
+    ) external initializer onlyAdmin {
+        setSxTToken(_sxt);
+        setSxTOracle(_operator);
 
         SXT_JOB_ID = stringToBytes32(_jobId);
         SXT_GATEWAY_ENDPOINT = _sxtGatewayEndpoint;
@@ -46,7 +46,16 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
 
     /// @dev Set SXT operator contract address
     function setSXTOperator(address _operator) external onlyAdmin {
-        setChainlinkOracle(_operator);
+        setSxTOracle(_operator);
+    }
+
+    /// @dev Withdraw SXT from contract
+    function withdrawSXT(address _to, uint256 _amount) external onlyAdmin {
+        IERC20(SxTTokenAddress()).transferFrom(
+            address(this),
+            _to,
+            _amount
+        );
     }
 
     /// @dev Set SXT JOB ID
@@ -54,21 +63,13 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
         SXT_JOB_ID = stringToBytes32(_jobId);
     }
 
-    /// @dev Withdraw LINK from contract
-    function withdrawLINK(address _to, uint256 _amount) external onlyAdmin {
-        IERC20(chainlinkTokenAddress()).transferFrom(
-            address(this),
-            _to,
-            _amount
-        );
-    }
 
     /// @dev Execute api call
     function executeApi(string memory _resourceId, string memory _query, string memory _path)
         external
         returns (bytes32 requestId)
     {
-        Chainlink.Request memory request = buildChainlinkRequest(
+        SxT.Request memory request = buildSxTRequest(
             SXT_JOB_ID,
             address(this),
             this.callback.selector
@@ -81,13 +82,13 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
         request.add("path", _path);
 
         // Sends the request
-        return sendChainlinkRequest(request, FEE);
+        return sendSxTRequest(request, FEE);
     }
 
     /// @dev SXT off-chain request callback
     function callback(bytes32 _requestId, string calldata _data)
         external
-        recordChainlinkFulfillment(_requestId)
+        recordSxTFulfillment(_requestId)
     {
         currentRequestId = _requestId;
         currentResponse = _data;
