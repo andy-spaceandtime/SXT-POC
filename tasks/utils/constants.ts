@@ -1,6 +1,6 @@
 export const SXT_JOB_ID = {
-  goerli: "c5aa500e9d2446628492dfaa201a8d04",
   kovan: "c5aa500e9d2446628492dfaa201a8d04",
+  goerli: "42f4653118a146ed9c322d801f6cbbc9",
 };
 
 export const SXT_GATEWAY_ENDPOINT = {

@@ -20,8 +20,15 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     /// @dev SpaceAndTime Gateway API Endpoint
     string public SXT_GATEWAY_ENDPOINT;
 
+    /// @dev SXT Api call request Id
+    bytes32 public currentRequestId;
+
     /// @dev SXT Api call response
-    string[][] public response;
+    string public currentResponse;
+
+    constructor() {
+        admin = msg.sender;
+    }
 
     /// @dev Initialize contract states
     function initialize(
@@ -29,7 +36,7 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
         address _link,
         string memory _jobId,
         string memory _sxtGatewayEndpoint
-    ) external initializer onlyAdmin {
+    ) external initializer {
         setChainlinkToken(_link);
         setChainlinkOracle(_operator);
 
@@ -40,6 +47,11 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     /// @dev Set SXT operator contract address
     function setSXTOperator(address _operator) external onlyAdmin {
         setChainlinkOracle(_operator);
+    }
+
+    /// @dev Set SXT JOB ID
+    function setSXTJobID(string memory _jobId) external onlyAdmin {
+        SXT_JOB_ID = stringToBytes32(_jobId);
     }
 
     /// @dev Withdraw LINK from contract
@@ -73,26 +85,11 @@ contract ApiCall is Admin, String, Initializer, ChainlinkClient {
     }
 
     /// @dev SXT off-chain request callback
-    function callback(bytes32 _requestId, string[][] calldata _data)
+    function callback(bytes32 _requestId, string calldata _data)
         external
         recordChainlinkFulfillment(_requestId)
     {
-        // Remove previous data
-        delete response;
-
-        uint256 i;
-        uint256 j;
-        uint256 inLength;
-        uint256 length = _data.length;
-
-        // Store response
-        for (i = 0; i < length; i++) {
-            inLength = _data[i].length;
-            string[] memory row = new string[](inLength);
-            for (j = 0; j < inLength; j++) {
-                row[j] = _data[i][j];
-            }
-            response.push(row);
-        }
+        currentRequestId = _requestId;
+        currentResponse = _data;
     }
 }
