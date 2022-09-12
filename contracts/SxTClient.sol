@@ -1,55 +1,55 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./Chainlink.sol";
+import "./SxT.sol";
 import "./interfaces/ENSInterface.sol";
-import "./interfaces/LinkTokenInterface.sol";
-import "./interfaces/ChainlinkRequestInterface.sol";
+import "./interfaces/SxTTokenInterface.sol";
+import "./interfaces/SxTRequestInterface.sol";
 import "./interfaces/OperatorInterface.sol";
 import "./interfaces/PointerInterface.sol";
-import {ENSResolver as ENSResolver_Chainlink} from "./vendor/ENSResolver.sol";
+import {ENSResolver as ENSResolver_SxT} from "./vendor/ENSResolver.sol";
 
 /**
- * @title The ChainlinkClient contract
+ * @title The SxTClient contract
  * @notice Contract writers can inherit this contract in order to create requests for the
- * Chainlink network
+ * SxT network
  */
-abstract contract ChainlinkClient {
-  using Chainlink for Chainlink.Request;
+abstract contract SxTClient {
+  using SxT for SxT.Request;
 
-  uint256 internal constant LINK_DIVISIBILITY = 10**18;
+  uint256 internal constant SXT_DIVISIBILITY = 10**18;
   uint256 private constant AMOUNT_OVERRIDE = 0;
   address private constant SENDER_OVERRIDE = address(0);
   uint256 private constant ORACLE_ARGS_VERSION = 1;
   uint256 private constant OPERATOR_ARGS_VERSION = 2;
-  bytes32 private constant ENS_TOKEN_SUBNAME = keccak256("link");
+  bytes32 private constant ENS_TOKEN_SUBNAME = keccak256("sxt");
   bytes32 private constant ENS_ORACLE_SUBNAME = keccak256("oracle");
-  address private constant LINK_TOKEN_POINTER = 0xC89bD4E1632D3A43CB03AAAd5262cbe4038Bc571;
+  address private constant SXT_TOKEN_POINTER = 0xC89bD4E1632D3A43CB03AAAd5262cbe4038Bc571;
 
   ENSInterface private s_ens;
   bytes32 private s_ensNode;
-  LinkTokenInterface private s_link;
+  SxTTokenInterface private s_sxt;
   OperatorInterface private s_oracle;
   uint256 private s_requestCount = 1;
   mapping(bytes32 => address) private s_pendingRequests;
 
-  event ChainlinkRequested(bytes32 indexed id);
-  event ChainlinkFulfilled(bytes32 indexed id);
-  event ChainlinkCancelled(bytes32 indexed id);
+  event SxTRequested(bytes32 indexed id);
+  event SxTFulfilled(bytes32 indexed id);
+  event SxTCancelled(bytes32 indexed id);
 
   /**
    * @notice Creates a request that can hold additional parameters
    * @param specId The Job Specification ID that the request will be created for
    * @param callbackAddr address to operate the callback on
    * @param callbackFunctionSignature function signature to use for the callback
-   * @return A Chainlink Request struct in memory
+   * @return A SxT Request struct in memory
    */
-  function buildChainlinkRequest(
+  function buildSxTRequest(
     bytes32 specId,
     address callbackAddr,
     bytes4 callbackFunctionSignature
-  ) internal pure returns (Chainlink.Request memory) {
-    Chainlink.Request memory req;
+  ) internal pure returns (SxT.Request memory) {
+    SxT.Request memory req;
     return req.initialize(specId, callbackAddr, callbackFunctionSignature);
   }
 
@@ -57,49 +57,49 @@ abstract contract ChainlinkClient {
    * @notice Creates a request that can hold additional parameters
    * @param specId The Job Specification ID that the request will be created for
    * @param callbackFunctionSignature function signature to use for the callback
-   * @return A Chainlink Request struct in memory
+   * @return A SxT Request struct in memory
    */
   function buildOperatorRequest(bytes32 specId, bytes4 callbackFunctionSignature)
     internal
     view
-    returns (Chainlink.Request memory)
+    returns (SxT.Request memory)
   {
-    Chainlink.Request memory req;
+    SxT.Request memory req;
     return req.initialize(specId, address(this), callbackFunctionSignature);
   }
 
   /**
-   * @notice Creates a Chainlink request to the stored oracle address
-   * @dev Calls `chainlinkRequestTo` with the stored oracle address
-   * @param req The initialized Chainlink Request
-   * @param payment The amount of LINK to send for the request
+   * @notice Creates a SxT request to the stored oracle address
+   * @dev Calls `SxTRequestTo` with the stored oracle address
+   * @param req The initialized SxT Request
+   * @param payment The amount of SXT to send for the request
    * @return requestId The request ID
    */
-  function sendChainlinkRequest(Chainlink.Request memory req, uint256 payment) internal returns (bytes32) {
-    return sendChainlinkRequestTo(address(s_oracle), req, payment);
+  function sendSxTRequest(SxT.Request memory req, uint256 payment) internal returns (bytes32) {
+    return sendSxTRequestTo(address(s_oracle), req, payment);
   }
 
   /**
-   * @notice Creates a Chainlink request to the specified oracle address
+   * @notice Creates a SxT request to the specified oracle address
    * @dev Generates and stores a request ID, increments the local nonce, and uses `transferAndCall` to
-   * send LINK which creates a request on the target oracle contract.
-   * Emits ChainlinkRequested event.
+   * send SXT which creates a request on the target oracle contract.
+   * Emits SxTRequested event.
    * @param oracleAddress The address of the oracle for the request
-   * @param req The initialized Chainlink Request
-   * @param payment The amount of LINK to send for the request
+   * @param req The initialized SxT Request
+   * @param payment The amount of SXT to send for the request
    * @return requestId The request ID
    */
-  function sendChainlinkRequestTo(
+  function sendSxTRequestTo(
     address oracleAddress,
-    Chainlink.Request memory req,
+    SxT.Request memory req,
     uint256 payment
   ) internal returns (bytes32 requestId) {
     uint256 nonce = s_requestCount;
     s_requestCount = nonce + 1;
     bytes memory encodedRequest = abi.encodeWithSelector(
-      ChainlinkRequestInterface.oracleRequest.selector,
+      SxTRequestInterface.oracleRequest.selector,
       SENDER_OVERRIDE, // Sender value - overridden by onTokenTransfer by the requesting contract's address
-      AMOUNT_OVERRIDE, // Amount value - overridden by onTokenTransfer by the actual amount of LINK sent
+      AMOUNT_OVERRIDE, // Amount value - overridden by onTokenTransfer by the actual amount of SXT sent
       req.id,
       address(this),
       req.callbackFunctionId,
@@ -111,31 +111,31 @@ abstract contract ChainlinkClient {
   }
 
   /**
-   * @notice Creates a Chainlink request to the stored oracle address
+   * @notice Creates a SxT request to the stored oracle address
    * @dev This function supports multi-word response
    * @dev Calls `sendOperatorRequestTo` with the stored oracle address
-   * @param req The initialized Chainlink Request
-   * @param payment The amount of LINK to send for the request
+   * @param req The initialized SxT Request
+   * @param payment The amount of SXT to send for the request
    * @return requestId The request ID
    */
-  function sendOperatorRequest(Chainlink.Request memory req, uint256 payment) internal returns (bytes32) {
+  function sendOperatorRequest(SxT.Request memory req, uint256 payment) internal returns (bytes32) {
     return sendOperatorRequestTo(address(s_oracle), req, payment);
   }
 
   /**
-   * @notice Creates a Chainlink request to the specified oracle address
+   * @notice Creates a SxT request to the specified oracle address
    * @dev This function supports multi-word response
    * @dev Generates and stores a request ID, increments the local nonce, and uses `transferAndCall` to
-   * send LINK which creates a request on the target oracle contract.
-   * Emits ChainlinkRequested event.
+   * send SXT which creates a request on the target oracle contract.
+   * Emits SxTRequested event.
    * @param oracleAddress The address of the oracle for the request
-   * @param req The initialized Chainlink Request
-   * @param payment The amount of LINK to send for the request
+   * @param req The initialized SxT Request
+   * @param payment The amount of SXT to send for the request
    * @return requestId The request ID
    */
   function sendOperatorRequestTo(
     address oracleAddress,
-    Chainlink.Request memory req,
+    SxT.Request memory req,
     uint256 payment
   ) internal returns (bytes32 requestId) {
     uint256 nonce = s_requestCount;
@@ -143,7 +143,7 @@ abstract contract ChainlinkClient {
     bytes memory encodedRequest = abi.encodeWithSelector(
       OperatorInterface.operatorRequest.selector,
       SENDER_OVERRIDE, // Sender value - overridden by onTokenTransfer by the requesting contract's address
-      AMOUNT_OVERRIDE, // Amount value - overridden by onTokenTransfer by the actual amount of LINK sent
+      AMOUNT_OVERRIDE, // Amount value - overridden by onTokenTransfer by the actual amount of SXT sent
       req.id,
       req.callbackFunctionId,
       nonce,
@@ -157,7 +157,7 @@ abstract contract ChainlinkClient {
    * @notice Make a request to an oracle
    * @param oracleAddress The address of the oracle for the request
    * @param nonce used to generate the request ID
-   * @param payment The amount of LINK to send for the request
+   * @param payment The amount of SXT to send for the request
    * @param encodedRequest data encoded for request type specific format
    * @return requestId The request ID
    */
@@ -169,21 +169,21 @@ abstract contract ChainlinkClient {
   ) private returns (bytes32 requestId) {
     requestId = keccak256(abi.encodePacked(this, nonce));
     s_pendingRequests[requestId] = oracleAddress;
-    emit ChainlinkRequested(requestId);
-    require(s_link.transferAndCall(oracleAddress, payment, encodedRequest), "unable to transferAndCall to oracle");
+    emit SxTRequested(requestId);
+    require(s_sxt.transferAndCall(oracleAddress, payment, encodedRequest), "unable to transferAndCall to oracle");
   }
 
   /**
    * @notice Allows a request to be cancelled if it has not been fulfilled
    * @dev Requires keeping track of the expiration value emitted from the oracle contract.
    * Deletes the request from the `pendingRequests` mapping.
-   * Emits ChainlinkCancelled event.
+   * Emits SxTCancelled event.
    * @param requestId The request ID
-   * @param payment The amount of LINK sent for the request
+   * @param payment The amount of SXT sent for the request
    * @param callbackFunc The callback function specified for the request
    * @param expiration The time of the expiration for the request
    */
-  function cancelChainlinkRequest(
+  function cancelSxTRequest(
     bytes32 requestId,
     uint256 payment,
     bytes4 callbackFunc,
@@ -191,7 +191,7 @@ abstract contract ChainlinkClient {
   ) internal {
     OperatorInterface requested = OperatorInterface(s_pendingRequests[requestId]);
     delete s_pendingRequests[requestId];
-    emit ChainlinkCancelled(requestId);
+    emit SxTCancelled(requestId);
     requested.cancelOracleRequest(requestId, payment, callbackFunc, expiration);
   }
 
@@ -208,39 +208,39 @@ abstract contract ChainlinkClient {
    * @notice Sets the stored oracle address
    * @param oracleAddress The address of the oracle contract
    */
-  function setChainlinkOracle(address oracleAddress) internal {
+  function setSxTOracle(address oracleAddress) internal {
     s_oracle = OperatorInterface(oracleAddress);
   }
 
   /**
-   * @notice Sets the LINK token address
-   * @param linkAddress The address of the LINK token contract
+   * @notice Sets the SXT token address
+   * @param sxtAddress The address of the SXT token contract
    */
-  function setChainlinkToken(address linkAddress) internal {
-    s_link = LinkTokenInterface(linkAddress);
+  function setSxTToken(address sxtAddress) internal {
+    s_sxt = SxTTokenInterface(sxtAddress);
   }
 
   /**
-   * @notice Sets the Chainlink token address for the public
+   * @notice Sets the SxT token address for the public
    * network as given by the Pointer contract
    */
-  function setPublicChainlinkToken() internal {
-    setChainlinkToken(PointerInterface(LINK_TOKEN_POINTER).getAddress());
+  function setPublicSxTToken() internal {
+    setSxTToken(PointerInterface(SXT_TOKEN_POINTER).getAddress());
   }
 
   /**
-   * @notice Retrieves the stored address of the LINK token
-   * @return The address of the LINK token
+   * @notice Retrieves the stored address of the SXT token
+   * @return The address of the SXT token
    */
-  function chainlinkTokenAddress() internal view returns (address) {
-    return address(s_link);
+  function SxTTokenAddress() internal view returns (address) {
+    return address(s_sxt);
   }
 
   /**
    * @notice Retrieves the stored address of the oracle contract
    * @return The address of the oracle contract
    */
-  function chainlinkOracleAddress() internal view returns (address) {
+  function SxTOracleAddress() internal view returns (address) {
     return address(s_oracle);
   }
 
@@ -250,33 +250,33 @@ abstract contract ChainlinkClient {
    * @param oracleAddress The address of the oracle contract that will fulfill the request
    * @param requestId The request ID used for the response
    */
-  function addChainlinkExternalRequest(address oracleAddress, bytes32 requestId) internal notPendingRequest(requestId) {
+  function addSxTExternalRequest(address oracleAddress, bytes32 requestId) internal notPendingRequest(requestId) {
     s_pendingRequests[requestId] = oracleAddress;
   }
 
   /**
-   * @notice Sets the stored oracle and LINK token contracts with the addresses resolved by ENS
+   * @notice Sets the stored oracle and SXT token contracts with the addresses resolved by ENS
    * @dev Accounts for subnodes having different resolvers
    * @param ensAddress The address of the ENS contract
    * @param node The ENS node hash
    */
-  function useChainlinkWithENS(address ensAddress, bytes32 node) internal {
+  function useSxTWithENS(address ensAddress, bytes32 node) internal {
     s_ens = ENSInterface(ensAddress);
     s_ensNode = node;
-    bytes32 linkSubnode = keccak256(abi.encodePacked(s_ensNode, ENS_TOKEN_SUBNAME));
-    ENSResolver_Chainlink resolver = ENSResolver_Chainlink(s_ens.resolver(linkSubnode));
-    setChainlinkToken(resolver.addr(linkSubnode));
-    updateChainlinkOracleWithENS();
+    bytes32 sxtSubnode = keccak256(abi.encodePacked(s_ensNode, ENS_TOKEN_SUBNAME));
+    ENSResolver_SxT resolver = ENSResolver_SxT(s_ens.resolver(sxtSubnode));
+    setSxTToken(resolver.addr(sxtSubnode));
+    updateSxTOracleWithENS();
   }
 
   /**
    * @notice Sets the stored oracle contract with the address resolved by ENS
-   * @dev This may be called on its own as long as `useChainlinkWithENS` has been called previously
+   * @dev This may be called on its own as long as `useSxTWithENS` has been called previously
    */
-  function updateChainlinkOracleWithENS() internal {
+  function updateSxTOracleWithENS() internal {
     bytes32 oracleSubnode = keccak256(abi.encodePacked(s_ensNode, ENS_ORACLE_SUBNAME));
-    ENSResolver_Chainlink resolver = ENSResolver_Chainlink(s_ens.resolver(oracleSubnode));
-    setChainlinkOracle(resolver.addr(oracleSubnode));
+    ENSResolver_SxT resolver = ENSResolver_SxT(s_ens.resolver(oracleSubnode));
+    setSxTOracle(resolver.addr(oracleSubnode));
   }
 
   /**
@@ -284,9 +284,9 @@ abstract contract ChainlinkClient {
    * @dev Use if the contract developer prefers methods instead of modifiers for validation
    * @param requestId The request ID for fulfillment
    */
-  function validateChainlinkCallback(bytes32 requestId)
+  function validateSxTCallback(bytes32 requestId)
     internal
-    recordChainlinkFulfillment(requestId)
+    recordSxTFulfillment(requestId)
   // solhint-disable-next-line no-empty-blocks
   {
 
@@ -294,13 +294,13 @@ abstract contract ChainlinkClient {
 
   /**
    * @dev Reverts if the sender is not the oracle of the request.
-   * Emits ChainlinkFulfilled event.
+   * Emits SxTFulfilled event.
    * @param requestId The request ID for fulfillment
    */
-  modifier recordChainlinkFulfillment(bytes32 requestId) {
+  modifier recordSxTFulfillment(bytes32 requestId) {
     require(msg.sender == s_pendingRequests[requestId], "Source must be the oracle of the request");
     delete s_pendingRequests[requestId];
-    emit ChainlinkFulfilled(requestId);
+    emit SxTFulfilled(requestId);
     _;
   }
 
