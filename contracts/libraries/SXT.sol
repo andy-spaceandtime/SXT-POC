@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {CBORSxT} from "./vendor/CBORSxT.sol";
-import {BufferSxT} from "./vendor/BufferSxT.sol";
+import "./CBORSXT.sol";
+import "./BufferSXT.sol";
 
 /**
- * @title Library for common SxT functions
+ * @title Library for common SXT functions
  * @dev Uses imported CBOR library for encoding to buffer
  */
-library SxT {
+library SXT {
   uint256 internal constant defaultBufferSize = 256; // solhint-disable-line const-name-snakecase
 
-  using CBORSxT for BufferSxT.buffer;
+  using CBORSXT for BufferSXT.buffer;
 
   struct Request {
     bytes32 id;
     address callbackAddress;
     bytes4 callbackFunctionId;
     uint256 nonce;
-    BufferSxT.buffer buf;
+    BufferSXT.buffer buf;
   }
 
   /**
-   * @notice Initializes a SxT request
+   * @notice Initializes a SXT request
    * @dev Sets the ID, callback address, and callback function signature on the request
    * @param self The uninitialized request
    * @param jobId The Job Specification ID
@@ -35,8 +35,8 @@ library SxT {
     bytes32 jobId,
     address callbackAddr,
     bytes4 callbackFunc
-  ) internal pure returns (SxT.Request memory) {
-    BufferSxT.init(self.buf, defaultBufferSize);
+  ) internal pure returns (SXT.Request memory) {
+    BufferSXT.init(self.buf, defaultBufferSize);
     self.id = jobId;
     self.callbackAddress = callbackAddr;
     self.callbackFunctionId = callbackFunc;
@@ -50,8 +50,8 @@ library SxT {
    * @param data The CBOR data
    */
   function setBuffer(Request memory self, bytes memory data) internal pure {
-    BufferSxT.init(self.buf, data.length);
-    BufferSxT.append(self.buf, data);
+    BufferSXT.init(self.buf, data.length);
+    BufferSXT.append(self.buf, data);
   }
 
   /**

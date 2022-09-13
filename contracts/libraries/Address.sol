@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// From https://github.com/OpenZeppelin/openzeppelin-contracts v3.4.0(fa64a1ced0b70ab89073d5d0b6e01b0778f7e7d6)
 
 pragma solidity ^0.8.9;
 
