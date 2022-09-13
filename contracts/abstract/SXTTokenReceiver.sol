@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-abstract contract SxTTokenReceiver {
+abstract contract SXTTokenReceiver {
   /**
    * @notice Called when SXT is sent to the contract via `transferAndCall`
    * @dev The data payload's first 2 words will be overwritten by the `sender` and `amount`
@@ -26,7 +26,7 @@ abstract contract SxTTokenReceiver {
     require(success, "Unable to create request");
   }
 
-  function getSxTToken() public view virtual returns (address);
+  function getSXTToken() public view virtual returns (address);
 
   /**
    * @notice Validate the function called on token transfer
@@ -37,7 +37,7 @@ abstract contract SxTTokenReceiver {
    * @dev Reverts if not sent from the SXT token
    */
   modifier validateFromSXT() {
-    require(msg.sender == getSxTToken(), "Must use SXT token");
+    require(msg.sender == getSXTToken(), "Must use SXT token");
     _;
   }
 

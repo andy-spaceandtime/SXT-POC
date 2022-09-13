@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./SxTRequestInterface.sol";
+import "./SXTRequestInterface.sol";
 import "./OracleInterface.sol";
 
-interface OperatorInterface is SxTRequestInterface, OracleInterface {
+interface OperatorInterface is SXTRequestInterface, OracleInterface {
   function operatorRequest(
     address sender,
     uint256 payment,

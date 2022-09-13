@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces/AuthorizedReceiverInterface.sol";
+import "../interfaces/AuthorizedReceiverInterface.sol";
 
 abstract contract AuthorizedReceiver is AuthorizedReceiverInterface {
   mapping(address => bool) private s_authorizedSenders;
@@ -11,7 +11,7 @@ abstract contract AuthorizedReceiver is AuthorizedReceiverInterface {
 
   /**
    * @notice Sets the fulfillment permission for a given node. Use `true` to allow, `false` to disallow.
-   * @param senders The addresses of the authorized SxT node
+   * @param senders The addresses of the authorized SXT node
    */
   function setAuthorizedSenders(address[] calldata senders) external override validateAuthorizedSenderSetter {
     require(senders.length > 0, "Must have at least 1 authorized sender");
@@ -39,7 +39,7 @@ abstract contract AuthorizedReceiver is AuthorizedReceiverInterface {
 
   /**
    * @notice Use this to check if a node is authorized for fulfilling requests
-   * @param sender The address of the SxT node
+   * @param sender The address of the SXT node
    * @return The authorization status of the node
    */
   function isAuthorizedSender(address sender) public view override returns (bool) {

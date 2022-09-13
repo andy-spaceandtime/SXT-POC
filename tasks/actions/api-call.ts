@@ -14,8 +14,8 @@ import {
   API_CALL_PROXY_CONTRACT_NAME,
   API_CALL_CONTRACT_NAME,
 } from "../deployers";
-import ApiCallArtifact from "../../artifacts/contracts/ApiCall.sol/ApiCall.json";
-import ApiCallProxyArtifact from "../../artifacts/contracts/proxy/Proxy.sol/Proxy.json";
+import ApiCallABI from "../../abis/ApiCall.json";
+import ProxyABI from "../../abis/Proxy.json";
 
 task(
   "action:ApiCallProxy:implementation",
@@ -30,7 +30,7 @@ task(
     // Set implementation
     const proxyContract = new Contract(
       apicallProxy.address,
-      ApiCallProxyArtifact.abi,
+      ProxyABI,
       account
     ) as Proxy;
 
@@ -57,7 +57,7 @@ task(
     // initialize
     const contract = new Contract(
       apicallProxy.address,
-      ApiCallArtifact.abi,
+      ApiCallABI,
       account
     ) as ApiCall;
 
@@ -90,7 +90,7 @@ task(
     // initialize
     const contract = new Contract(
       apicall.address,
-      ApiCallArtifact.abi,
+      ApiCallABI,
       account
     ) as ApiCall;
 

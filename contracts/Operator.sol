@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./AuthorizedReceiver.sol";
-import "./SxTTokenReceiver.sol";
+import "./abstract/AuthorizedReceiver.sol";
+import "./abstract/SXTTokenReceiver.sol";
 import "./ConfirmedOwner.sol";
-import "./interfaces/SxTTokenInterface.sol";
+import "./interfaces/SXTTokenInterface.sol";
 import "./interfaces/OperatorInterface.sol";
 import "./interfaces/OwnableInterface.sol";
 import "./interfaces/WithdrawalInterface.sol";
-import "./vendor/Address.sol";
-import "./vendor/SafeMathSxT.sol";
+import "./libraries/Address.sol";
+import "./libraries/SafeMathSXT.sol";
 
 /**
- * @title The SxT Operator contract
+ * @title The SXT Operator contract
  * @notice Node operators can deploy this contract to fulfill requests sent to them
  */
-contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, OperatorInterface, WithdrawalInterface {
+contract Operator is AuthorizedReceiver, ConfirmedOwner, SXTTokenReceiver, OperatorInterface, WithdrawalInterface {
   using Address for address;
-  using SafeMathSxT for uint256;
+  using SafeMathSXT for uint256;
 
   struct Commitment {
     bytes31 paramsHash;
@@ -38,7 +38,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
   // operatorRequest is intended for version 2, enabling multi-word responses
   bytes4 private constant OPERATOR_REQUEST_SELECTOR = this.operatorRequest.selector;
 
-  SxTTokenInterface internal immutable sxtToken;
+  SXTTokenInterface internal immutable sxtToken;
   mapping(bytes32 => Commitment) private s_commitments;
   mapping(address => bool) private s_owned;
   // Tokens sent for requests that have not been fulfilled yet
@@ -71,7 +71,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
    * @param owner The address of the owner
    */
   constructor(address sxt, address owner) ConfirmedOwner(owner) {
-    sxtToken = SxTTokenInterface(sxt); // external but already deployed and unalterable
+    sxtToken = SXTTokenInterface(sxt); // external but already deployed and unalterable
   }
 
   /**
@@ -83,7 +83,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
   }
 
   /**
-   * @notice Creates the SxT request. This is a backwards compatible API
+   * @notice Creates the SXT request. This is a backwards compatible API
    * with the Oracle.sol contract, but the behavior changes because
    * callbackAddress is assumed to be the same as the request sender.
    * @param callbackAddress The consumer of the request
@@ -117,9 +117,9 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
   }
 
   /**
-   * @notice Creates the SxT request
+   * @notice Creates the SXT request
    * @dev Stores the hash of the params as the on-chain commitment for the request.
-   * Emits OracleRequest event for the SxT node to detect.
+   * Emits OracleRequest event for the SXT node to detect.
    * @param sender The sender of the request
    * @param payment The amount of payment given (specified in wei)
    * @param specId The Job Specification ID
@@ -149,7 +149,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
   }
 
   /**
-   * @notice Called by the SxT node to fulfill requests
+   * @notice Called by the SXT node to fulfill requests
    * @dev Given params must hash back to the commitment stored from `oracleRequest`.
    * Will call the callback address' callback function without bubbling up error
    * checking in a `require` so that the node can get paid.
@@ -187,7 +187,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
   }
 
   /**
-   * @notice Called by the SxT node to fulfill requests with multi-word support
+   * @notice Called by the SXT node to fulfill requests with multi-word support
    * @dev Given params must hash back to the commitment stored from `oracleRequest`.
    * Will call the callback address' callback function without bubbling up error
    * checking in a `require` so that the node can get paid.
@@ -288,7 +288,7 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
 
   /**
    * @notice Allows the node operator to withdraw earned SXT to a given address
-   * @dev The owner of the contract can be another wallet and does not have to be a SxT node
+   * @dev The owner of the contract can be another wallet and does not have to be a SXT node
    * @param recipient The address to send the SXT token to
    * @param amount The amount to send (specified in wei)
    */
@@ -414,10 +414,10 @@ contract Operator is AuthorizedReceiver, ConfirmedOwner, SxTTokenReceiver, Opera
 
   /**
    * @notice Returns the address of the SXT token
-   * @dev This is the public implementation for SxTTokenAddress, which is
-   * an internal method of the SxTClient contract
+   * @dev This is the public implementation for SXTTokenAddress, which is
+   * an internal method of the SXTClient contract
    */
-  function getSxTToken() public view override returns (address) {
+  function getSXTToken() public view override returns (address) {
     return address(sxtToken);
   }
 
