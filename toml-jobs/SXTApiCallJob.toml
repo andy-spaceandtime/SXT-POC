@@ -12,7 +12,9 @@ observationSource = """
                   topics="$(jobRun.logTopics)"]
 
     decode_cbor  [type="cborparse" data="$(decode_log.data)"]
-    request      [type="http" method=POST url="$(decode_cbor.post)" requestData="{ \\"resourceId\\": $(decode_cbor.resourceId), \\"sqlText\\": $(decode_cbor.query) }"]
+    resourceId   [type="jsonparse" path="resourceId" data="$(decode_cbor)"]
+    sqlText      [type="jsonparse" path="query" data="$(decode_cbor)"]
+    request      [type="http" method=POST url="$(decode_cbor.post)" requestData="{ \\"resourceId\\": $(resourceId), \\"sqlText\\": $(sqlText) }"]
     parse        [type="jsonparse" path="$(decode_cbor.path)" data="$(request)"]
 
     encode_data  [type="ethabiencode" abi="(bytes32 requestId, string value)" data="{ \\"requestId\\": $(decode_log.requestId), \\"value\\": $(parse) }"]
@@ -22,5 +24,5 @@ observationSource = """
                   ]
     submit_tx    [type="ethtx" to="0x5a27848f7B1a7Ad1EAcF187dA16ac2293F7970c2" data="$(encode_tx)"]
 
-    decode_log -> decode_cbor -> request -> parse -> encode_data -> encode_tx -> submit_tx
+    decode_log -> decode_cbor -> resourceId -> sqlText -> request -> parse -> encode_data -> encode_tx -> submit_tx
 """
