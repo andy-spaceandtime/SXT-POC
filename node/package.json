@@ -1,5 +1,5 @@
 {
-    "name": "sxtNode",
+    "name": "sxt-node",
     "description": "Space and Time node",
     "main": "server.js",
     "scripts": {
