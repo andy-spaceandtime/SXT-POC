@@ -27,10 +27,12 @@ console.log(`API contract address.: ${apiContractAddress}`);
 const apiContractSON = JSON.parse(
   fs.readFileSync(path.join(__dirname, "./contract-abi/Api.json"))
 );
+
 const apiContract = new web3.eth.Contract(apiContractSON, apiContractAddress, {
   from: serviceAccount.address,
   gasLimit: 3000000,
 });
+
 const apiContractWss = new web3wss.eth.Contract(
   apiContractSON,
   apiContractAddress,
